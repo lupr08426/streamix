@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamix - Ver The Matrix</title>
+    <style>
+        :root {
+            --primary-color: #e50914;
+            --dark-bg: #141414;
+            --darker-bg: #0a0a0a;
+            --light-text: #ffffff;
+            --gray-text: #b3b3b3;
+            --dark-gray: #333333;
+            --medium-gray: #555555;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--darker-bg);
+            color: var(--light-text);
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background-color: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+            transition: background-color 0.3s;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 1.5rem;
+        }
+        
+        nav ul li a {
+            color: var(--light-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: var(--gray-text);
+        }
+        
+        .content-container {
+            padding: 5rem 5% 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .breadcrumbs {
+            margin-bottom: 1rem;
+            color: var(--gray-text);
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumbs a {
+            color: var(--gray-text);
+            text-decoration: none;
+        }
+        
+        .breadcrumbs a:hover {
+            color: var(--light-text);
+        }
+        
+        .movie-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .movie-meta {
+            display: flex;
+            gap: 1rem;
+            color: var(--gray-text);
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .player-container {
+            position: relative;
+            width: 100%;
+            background-color: #000;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .aspect-ratio-box {
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            position: relative;
+        }
+        
+        .player-frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .player-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 10;
+        }
+        
+        .player-container:hover .player-controls {
+            opacity: 1;
+        }
+        
+        .control-btn {
+            background: none;
+            border: none;
+            color: var(--light-text);
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-right: 1rem;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 4px;
+            background-color: var(--medium-gray);
+            position: relative;
+            margin: 0 1rem;
+            border-radius: 2px;
+        }
+        
+        .progress-filled {
+            background-color: var(--primary-color);
+            width: 30%; /* Ajustar según el progreso */
+            height: 100%;
+            border-radius: 2px;
+        }
+        
+        .volume-container {
+            display: flex;
+            align-items: center;
+            margin-left: 1rem;
+        }
+        
+        .volume-slider {
+            width: 80px;
+            margin-left: 0.5rem;
+            -webkit-appearance: none;
+            background-color: var(--medium-gray);
+            height: 4px;
+            border-radius: 2px;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--light-text);
+            cursor: pointer;
+        }
+        
+        .server-options {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .server-btn, .option-btn {
+            padding: 0.5rem 1rem;
+            background-color: var(--dark-gray);
+            color: var(--light-text);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .server-btn:hover, .option-btn:hover {
+            background-color: var(--medium-gray);
+        }
+        
+        .server-btn.active {
+            background-color: var(--primary-color);
+        }
+        
+        .option-btn {
+            background-color: var(--dark-bg);
+        }
+        
+        .movie-options {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .left-options, .right-options {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .movie-info {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .movie-poster {
+            width: 220px;
+            height: 330px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .movie-details {
+            flex-grow: 1;
+        }
+        
+        .movie-description {
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            color: var(--gray-text);
+        }
+        
+        .movie-category {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .category-tag {
+            padding: 0.3rem 0.8rem;
+            background-color: var(--dark-gray);
+            border-radius: 16px;
+            font-size: 0.8rem;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 0.8rem;
+        }
+        
+        .info-label {
+            min-width: 120px;
+            color: var(--gray-text);
+        }
+        
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stars {
+            color: gold;
+        }
+        
+        .related-movies {
+            margin-top: 3rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+        
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .related-movie-card {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+        
+        .related-movie-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .related-movie-card img {
+            width: 100%;
+            height: 270px;
+            object-fit: cover;
+        }
+        
+        .related-movie-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+        }
+        
+        .related-movie-title {
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .related-movie-year {
+            font-size: 0.8rem;
+            color: var(--gray-text);
+        }
+        
+        .comments-section {
+            margin-top: 3rem;
+            margin-bottom: 2rem;
+        }
+        
+        .comment-box {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--dark-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .comment-input-container {
+            flex-grow: 1;
+        }
+        
+        .comment-input {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--dark-gray);
+            border: none;
+            border-radius: 4px;
+            color: var(--light-text);
+            resize: none;
+        }
+        
+        .comment-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 0.5rem;
+        }
+        
+        .comment-btn {
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .comments-list {
+            margin-top: 2rem;
+        }
+        
+        .comment {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .comment-content {
+            flex-grow: 1;
+        }
+        
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .commenter-name {
+            font-weight: bold;
+        }
+        
+        .comment-date {
+            font-size: 0.8rem;
+            color: var(--gray-text);
+        }
+        
+        .comment-text {
+            line-height: 1.5;
+            color: var(--gray-text);
+        }
+        
+        .comment-footer {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--gray-text);
+        }
+        
+        .comment-action {
+            cursor: pointer;
+        }
+        
+        .comment-action:hover {
+            color: var(--light-text);
+        }
+        
+        .fullscreen-toggle {
+            cursor: pointer;
+            margin-left: 1rem;
+        }
+        
+        footer {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 2rem 5%;
+            margin-top: 2rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        
+        .footer-section {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: var(--gray-text);
+        }
+        
+        .footer-section ul {
+            list-style: none;
+        }
+        
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer-section ul li a {
+            color: var(--light-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-section ul li a:hover {
+            color: var(--primary-color);
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--dark-gray);
+            color: var(--gray-text);
+        }
+        
+        @media (max-width: 768px) {
+            .movie-info {
+                flex-direction: column;
+            }
+            
+            .movie-poster {
+                width: 180px;
+                height: 270px;
+                margin-bottom: 1rem;
+            }
+            
+            .server-options {
+                flex-wrap: wrap;
+            }
+            
+            .movie-options {
+                justify-content: center;
+            }
+            
+            .movie-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header id="header">
+        <a href="index.html" class="logo">STREAMIX</a>
+        <nav>
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="#">Películas</a></li>
+                <li><a href="#">Series</a></li>
+                <li><a href="#">Mi Lista</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="content-container">
+        <div class="breadcrumbs">
+            <a href="index.html">Inicio</a> > <a href="#">Películas</a> > <a href="#">Ciencia Ficción</a> > The Matrix
+        </div>
+        
+        <h1 class="movie-title">The Matrix (1999)</h1>
+        
+        <div class="movie-meta">
+            <span>1999</span>
+            <span>136 min</span>
+            <span>R</span>
+            <span>Ciencia Ficción</span>
+            <span>Acción</span>
+            <span>8.7/10 ⭐</span>
+        </div>
+        
+        <div class="player-container">
+            <div class="aspect-ratio-box">
+                <!-- Reemplazar la imagen por un iframe para reproducir el video -->
+               <iframe 
+    id="video-player" 
+    class="player-frame" 
+    src="https://uqload.net/embed-b2w70de70za8.html" 
+    frameborder="0" 
+    marginwidth="0" 
+    marginheight="0" 
+    scrolling="no" 
+    width="640" 
+    height="360" 
+    allowfullscreen>
+</iframe>
+
+               
+            </div>
+        </div>
+        
+        <div class="server-options">
+            <button class="server-btn active" data-source="https://uqload.net/b2w70de70za8.html">Servidor 1 (YouTube)</button>
+            <button class="server-btn" data-source="https://player.vimeo.com/video/235293542">Servidor 2 (Vimeo)</button>
+            <button class="server-btn" data-source="https://www.dailymotion.com/embed/video/x2y6khm">Servidor 3 (Dailymotion)</button>
+            <button class="server-btn" data-source="#">Servidor 4</button>
+            <button class="server-btn" data-source="#">Servidor 5</button>
+        </div>
+        
+        <div class="movie-options">
+            <div class="left-options">
+                <button class="option-btn">Agregar a Favoritos</button>
+                <button class="option-btn">Descargar</button>
+            </div>
+            <div class="right-options">
+                <button class="option-btn">Compartir</button>
+                <button class="option-btn">Reportar</button>
+            </div>
+        </div>
+        
+        <div class="movie-info">
+            <img src="images/The Matrix.jpg" alt="The Matrix" class="movie-poster">
+            <div class="movie-details">
+                <p class="movie-description">
+                    Un hacker informático aprende de misteriosos rebeldes la verdadera naturaleza de su realidad y su papel en la guerra contra sus controladores. The Matrix es una película de ciencia ficción que plantea una realidad simulada en la que la humanidad está atrapada sin saberlo, mientras las máquinas usan sus cuerpos como fuente de energía.
+                </p>
+                
+                <div class="movie-category">
+                    <div class="category-tag">Ciencia Ficción</div>
+                    <div class="category-tag">Acción</div>
+                    <div class="category-tag">Filosofía</div>
+                </div>
+                
+                <div class="rating">
+                    <div class="stars">★★★★★</div>
+                    <span>8.7/10 (1.8M votos)</span>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Director:</div>
+                    <div>Lana Wachowski, Lilly Wachowski</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Actores:</div>
+                    <div>Keanu Reeves, Laurence Fishburne, Carrie-Anne Moss, Hugo Weaving</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">País:</div>
+                    <div>Estados Unidos</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Idioma:</div>
+                    <div>Inglés</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Calidad:</div>
+                    <div>HD 1080p</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="related-movies">
+            <h2 class="section-title">Películas relacionadas</h2>
+            <div class="movie-grid">
+                <div class="related-movie-card">
+                    <img src="images/Inception.png" alt="Inception">
+                    <div class="related-movie-overlay">
+                        <div class="related-movie-title">Inception</div>
+                        <div class="related-movie-year">2010</div>
+                    </div>
+                </div>
+                <div class="related-movie-card">
+                    <img src="images/Dune.jpg" alt="Dune">
+                    <div class="related-movie-overlay">
+                        <div class="related-movie-title">Dune</div>
+                        <div class="related-movie-year">2021</div>
+                    </div>
+                </div>
+                <div class="related-movie-card">
+                    <img src="images/The Avengers.jpg" alt="The Avengers">
+                    <div class="related-movie-overlay">
+                        <div class="related-movie-title">The Avengers</div>
+                        <div class="related-movie-year">2012</div>
+                    </div>
+                </div>
+                <div class="related-movie-card">
+                    <img src="images/Get Out.png" alt="Get Out">
+                    <div class="related-movie-overlay">
+                        <div class="related-movie-title">Get Out</div>
+                        <div class="related-movie-year">2017</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="comments-section">
+            <h2 class="section-title">Comentarios</h2>
+            
+            <div class="comment-box">
+                <div class="user-avatar">U</div>
+                <div class="comment-input-container">
+                    <textarea class="comment-input" rows="3" placeholder="Escribe un comentario..."></textarea>
+                    <div class="comment-actions">
+                        <button class="comment-btn">Comentar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="comments-list">
+                <div class="comment">
+                    <div class="user-avatar">M</div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <div class="commenter-name">MovieFan2000</div>
+                            <div class="comment-date">Hace 2 días</div>
+                        </div>
+                        <p class="comment-text">
+                            Una de las mejores películas de ciencia ficción de todos los tiempos. Los efectos especiales revolucionaron el cine y el concepto filosófico de la realidad simulada sigue siendo relevante hoy en día.
+                        </p>
+                        <div class="comment-footer">
+                            <div class="comment-action">Me gusta (24)</div>
+                            <div class="comment-action">Responder</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comment">
+                    <div class="user-avatar">S</div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <div class="commenter-name">SciFiLover</div>
+                            <div class="comment-date">Hace 5 días</div>
+                        </div>
+                        <p class="comment-text">
+                            La vi por primera vez cuando salió y ahora la he vuelto a ver con mis hijos. Increíble cómo se mantiene fresca después de tantos años. Keanu Reeves como Neo es simplemente icónico.
+                        </p>
+                        <div class="comment-footer">
+                            <div class="comment-action">Me gusta (17)</div>
+                            <div class="comment-action">Responder</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comment">
+                    <div class="user-avatar">C</div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <div class="commenter-name">CinemaExpert</div>
+                            <div class="comment-date">Hace 1 semana</div>
+                        </div>
+                        <p class="comment-text">
+                            La escena de "bullet time" sigue siendo una de las secuencias más copiadas en el cine moderno. Cada vez que la veo descubro nuevos detalles en la historia. Una obra maestra que mezcla acción, filosofía y efectos visuales.
+                        </p>
+                        <div class="comment-footer">
+                            <div class="comment-action">Me gusta (39)</div>
+                            <div class="comment-action">Responder</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Streamix</h3>
+                <ul>
+                    <li><a href="#">Acerca de</a></li>
+                    <li><a href="#">Empleo</a></li>
+                    <li><a href="#">Contáctanos</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Ayuda</h3>
+                <ul>
+                    <li><a href="#">Preguntas Frecuentes</a></li>
+                    <li><a href="#">Dispositivos Compatibles</a></li>
+                    <li><a href="#">Centro de Ayuda</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <ul>
+                    <li><a href="#">Términos de Uso</a></li>
+                    <li><a href="#">Política de Privacidad</a></li>
+                    <li><a href="#">Preferencias de Cookies</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Redes Sociales</h3>
+                <ul>
+                    <li><a href="#">Facebook</a></li>
+                    <li><a href="#">Twitter</a></li>
+                    <li><a href="#">Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 Streamix. Todos los derechos reservados. Proyecto escolar.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Script para manejar la funcionalidad del reproductor y otras interacciones
+        document.addEventListener('DOMContentLoaded', function() {
+            const videoPlayer = document.getElementById('video-player');
+            
+            // Funcionalidad para cambiar de servidor
+            const serverButtons = document.querySelectorAll('.server-btn');
+            serverButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remover la clase active de todos los botones
+                    serverButtons.forEach(btn => btn.classList.remove('active'));
+                    // Añadir la clase active al botón actual
+                    this.classList.add('active');
+                    
+                    // Cambiar la fuente del video
+                    const newSource = this.getAttribute('data-source');
+                    if (newSource && newSource !== '#') {
+                        videoPlayer.src = newSource;
+                        console.log('Cambiando reproductor a:', newSource);
+                    } else {
+                        alert('Este servidor no está disponible actualmente.');
+                    }
+                });
+            });
+            
+            // Botones de control (interactuarán con la API del reproductor cuando sea posible)
+            const playButton = document.querySelector('.play-btn');
+            const pauseButton = document.querySelector('.pause-btn');
+            const volumeButton = document.querySelector('.volume-btn');
+            const volumeSlider = document.querySelector('.volume-slider');
+            const fullscreenButton = document.querySelector('.fullscreen-btn');
+            
+            // YouTube e iframes no permiten control directo completo desde JavaScript externo
+            // por razones de seguridad, pero podemos implementar algunos elementos básicos
+            
+            playButton.addEventListener('click', function() {
+                // Intento de reproducir video mediante postMessage para YouTube
+                // (Solo funciona si el iframe lo permite y está en el mismo dominio)
+                try {
+                    videoPlayer.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                } catch(e) {
+                    console.log('No se pudo reproducir el video:', e);
+                    alert('Use los controles nativos del reproductor para reproducir el video');
+                }
+            });
+            
+            pauseButton.addEventListener('click', function() {
+                try {
+                    videoPlayer.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                } catch(e) {
+                    console.log('No se pudo pausar el video:', e);
+                    alert('Use los controles nativos del reproductor para pausar el video');
+                }
+            });
+            
+            volumeButton.addEventListener('click', function() {
+                if (volumeSlider.value > 0) {
+                    volumeSlider.dataset.previousVolume = volumeSlider.value;
+                    volumeSlider.value = 0;
+                    this.textContent = '🔇';
+                    // Intento de silenciar
+                    try {
+                        videoPlayer.contentWindow.postMessage('{"event":"command","func":"mute","args":""}', '*');
+                    } catch(e) {
+                        console.log('No se pudo silenciar:', e);
+                    }
+                } else {
+                    volumeSlider.value = volumeSlider.dataset.previousVolume || 80;
+                    this.textContent = '🔊';
+                }
+            });
+            
+            volumeSlider.addEventListener('input', function() {
+                volumeButton.textContent = this.value > 0 ? '🔊' : '🔇';
+            });
+            
+            fullscreenToggle.addEventListener('click', function() {
+                alert('En un reproductor real, esto activaría el modo pantalla completa.');
+            });
+            
+            // Botones de opciones de película
+            const optionButtons = document.querySelectorAll('.option-btn');
+            optionButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    alert('Función: ' + this.textContent + ' (Simulada para este proyecto escolar)');
+                });
+            });
+            
+            // Películas relacionadas
+            const relatedMovies = document.querySelectorAll('.related-movie-card');
+            relatedMovies.forEach(movie => {
+                movie.addEventListener('click', function() {
+                    const title = this.querySelector('.related-movie-title').textContent;
+                    alert('Navegando a la película: ' + title + ' (Simulado para este proyecto)');
+                });
+            });
+            
+            // Botón de comentar
+            const commentButton = document.querySelector('.comment-btn');
+            const commentInput = document.querySelector('.comment-input');
+            
+            commentButton.addEventListener('click', function() {
+                const commentText = commentInput.value.trim();
+                if (commentText) {
+                    alert('Comentario enviado: ' + commentText + ' (Simulado para este proyecto)');
+                    commentInput.value = '';
+                } else {
+                    alert('Por favor escribe un comentario antes de enviar.');
+                }
+            });
+            
+            // Acciones de comentarios existentes
+            const commentActions = document.querySelectorAll('.comment-action');
+            commentActions.forEach(action => {
+                action.addEventListener('click', function() {
+                    alert('Acción: ' + this.textContent + ' (Simulada para este proyecto)');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

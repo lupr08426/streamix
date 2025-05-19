@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamix - Ver Get Out</title>
+    <style>
+        :root {
+            --primary-color: #e50914;
+            --dark-bg: #141414;
+            --darker-bg: #0a0a0a;
+            --light-text: #ffffff;
+            --gray-text: #b3b3b3;
+            --dark-gray: #333333;
+            --medium-gray: #555555;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--darker-bg);
+            color: var(--light-text);
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background-color: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+            transition: background-color 0.3s;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 1.5rem;
+        }
+        
+        nav ul li a {
+            color: var(--light-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: var(--gray-text);
+        }
+        
+        .content-container {
+            padding: 5rem 5% 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .breadcrumbs {
+            margin-bottom: 1rem;
+            color: var(--gray-text);
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumbs a {
+            color: var(--gray-text);
+            text-decoration: none;
+        }
+        
+        .breadcrumbs a:hover {
+            color: var(--light-text);
+        }
+        
+        .movie-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .movie-meta {
+            display: flex;
+            gap: 1rem;
+            color: var(--gray-text);
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .player-container {
+            position: relative;
+            width: 100%;
+            background-color: #000;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .aspect-ratio-box {
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            position: relative;
+        }
+        
+        .player-frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .player-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .player-container:hover .player-controls {
+            opacity: 1;
+        }
+        
+        .control-btn {
+            background: none;
+            border: none;
+            color: var(--light-text);
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-right: 1rem;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 4px;
+            background-color: var(--medium-gray);
+            position: relative;
+            margin: 0 1rem;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        
+        .progress-filled {
+            background-color: var(--primary-color);
+            width: 0%; /* Será actualizado por JavaScript */
+            height: 100%;
+            border-radius: 2px;
+        }
+        
+        .volume-container {
+            display: flex;
+            align-items: center;
+            margin-left: 1rem;
+        }
+        
+        .volume-slider {
+            width: 80px;
+            margin-left: 0.5rem;
+            -webkit-appearance: none;
+            background-color: var(--medium-gray);
+            height: 4px;
+            border-radius: 2px;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--light-text);
+            cursor: pointer;
+        }
+        
+        .server-options {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .server-btn, .option-btn {
+            padding: 0.5rem 1rem;
+            background-color: var(--dark-gray);
+            color: var(--light-text);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .server-btn:hover, .option-btn:hover {
+            background-color: var(--medium-gray);
+        }
+        
+        .server-btn.active {
+            background-color: var(--primary-color);
+        }
+        
+        .option-btn {
+            background-color: var(--dark-bg);
+        }
+        
+        .movie-options {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .left-options, .right-options {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .movie-info {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .movie-poster {
+            width: 220px;
+            height: 330px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .movie-details {
+            flex-grow: 1;
+        }
+        
+        .movie-description {
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            color: var(--gray-text);
+        }
+        
+        .movie-category {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .category-tag {
+            padding: 0.3rem 0.8rem;
+            background-color: var(--dark-gray);
+            border-radius: 16px;
+            font-size: 0.8rem;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 0.8rem;
+        }
+        
+        .info-label {
+            min-width: 120px;
+            color: var(--gray-text);
+        }
+        
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stars {
+            color: gold;
+        }
+        
+        .related-movies {
+            margin-top: 3rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+        
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .related-movie-card {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+        
+        .related-movie-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .related-movie-card img {
+            width: 100%;
+            height: 270px;
+            object-fit: cover;
+        }
+        
+        .related-movie-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+        }
+        
+        .related-movie-title {
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .related-movie-year {
+            font-size: 0.8rem;
+            color: var(--gray-text);
+        }
+        
+        .comments-section {
+            margin-top: 3rem;
+            margin-bottom: 2rem;
+        }
+        
+        .comment-box {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--dark-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .comment-input-container {
+            flex-grow: 1;
+        }
+        
+        .comment-input {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--dark-gray);
+            border: none;
+            border-radius: 4px;
+            color: var(--light-text);
+            resize: none;
+        }
+        
+        .comment-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 0.5rem;
+        }
+        
+        .comment-btn {
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .comments-list {
+            margin-top: 2rem;
+        }
+        
+        .comment {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .comment-content {
+            flex-grow: 1;
+        }
+        
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .commenter-name {
+            font-weight: bold;
+        }
+        
+        .comment-date {
+            font-size: 0.8rem;
+            color: var(--gray-text);
+        }
+        
+        .comment-text {
+            line-height: 1.5;
+            color: var(--gray-text);
+        }
+        
+        .comment-footer {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--gray-text);
+        }
+        
+        .comment-action {
+            cursor: pointer;
+        }
+        
+        .comment-action:hover {
+            color: var(--light-text);
+        }
+        
+        .fullscreen-toggle {
+            cursor: pointer;
+            margin-left: 1rem;
+        }
+        
+        footer {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 2rem 5%;
+            margin-top: 2rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        
+        .footer-section {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: var(--gray-text);
+        }
+        
+        .footer-section ul {
+            list-style: none;
+        }
+        
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer-section ul li a {
+            color: var(--light-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-section ul li a:hover {
+            color: var(--primary-color);
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--dark-gray);
+            color: var(--gray-text);
+        }
+        
+        .time-display {
+            color: var(--light-text);
+            margin: 0 10px;
+            font-size: 0.8rem;
+        }
+        
+        @media (max-width: 768px) {
+            .movie-info {
+                flex-direction: column;
+            }
+            
+            .movie-poster {
+                width: 180px;
+                height: 270px;
+                margin-bottom: 1rem;
+            }
+            
+            .server-options {
+                flex-wrap: wrap;
+            }
+            
+            .movie-options {
+                justify-content: center;
+            }
+            
+            .movie-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header id="header">
+        <a href="index.html" class="logo">STREAMIX</a>
+        <nav>
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="#">Películas</a></li>
+                <li><a href="#">Series</a></li>
+                <li><a href="#">Mi Lista</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="content-container">
+        <div class="breadcrumbs">
+            <a href="index.html">Inicio</a> > <a href="#">Películas</a> > <a href="#">Terror</a> > Get Out
+        </div>
+        
+        <h1 class="movie-title">Get Out (2017)</h1>
+        
+        <div class="movie-meta">
+            <span>2017</span>
+            <span>104 min</span>
+            <span>R</span>
+            <span>Terror</span>
+            <span>Thriller</span>
+            <span>7.7/10 ⭐</span>
+        </div>
+        
+        <div class="player-container">
+            <div class="aspect-ratio-box">
+<iframe 
+    id="video-player" 
+    class="player-frame" 
+    src="https://dhcplay.com/a5xhmqh7l67s" 
+    frameborder="0" 
+    marginwidth="0" 
+    marginheight="0" 
+    scrolling="no" 
+    width="1156" 
+    height="480" 
+    allowfullscreen>
+</iframe>
+           
+            </div>
+        </div>
+        
+        <div class="server-options">
+            <button class="server-btn active">Servidor 1</button>
+            <button class="server-btn">Servidor 2</button>
+            <button class="server-btn">Servidor 3</button>
+            <button class="server-btn">Servidor 4</button>
+            <button class="server-btn">Servidor 5</button>
+        </div>
+        
+        <div class="movie-options">
+            <div class="left-options">
+                <button class="option-btn">Agregar a Favoritos</button>
+                <button class="option-btn">Descargar</button>
+            </div>
+            <div class="right-options">
+                <button class="option-btn">Compartir</button>
+                <button class="option-btn">Reportar</button>
+            </div>
+        </div>
+        
+        <div class="movie-info">
+            <img src="images/Get Out.png" alt="Get Out" class="movie-poster">
+            <div class="movie-details">
+                <p class="movie-description">
+                    Chris, un joven fotógrafo afroamericano, viaja a la finca de la familia de su novia blanca para pasar el fin de semana. Lo que comienza como una visita familiar normal toma un giro inquietante cuando una serie de eventos perturbadores revela un secreto siniestro. A medida que los extraños comportamientos de la familia y sus sirvientes se intensifican, Chris descubre una verdad aterradora que lo obliga a luchar por su supervivencia.
+                </p>
+                
+                <div class="movie-category">
+                    <div class="category-tag">Terror</div>
+                    <div class="category-tag">Thriller</div>
+                    <div class="category-tag">Misterio</div>
+                    <div class="category-tag">Sátira social</div>
+                </div>
+                
+                <div class="rating">
+                    <div class="stars">★★★★☆</div>
+                    <span>7.7/10 (692K votos)</span>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Director:</div>
+                    <div>Jordan Peele</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Actores:</div>
+                    <div>Daniel Kaluuya, Allison Williams, Bradley Whitford, Catherine Keener</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">País:</div>
+                    <div>Estados Unidos</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Idioma:</div>
+                    <div>Inglés</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Calidad:</div>
+                    <div>HD 1080p</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="related-movies">
+            <h2 class="section-title">Películas relacionadas</h2>
+            <div class="movie-grid">
+                <div class="related-movie-card">
+                    <img src="/api/placeholder/180/270" alt="Us">
+                    <div class="related-movie-overlay">
+                        <div class="related-movie-title">Us</div>
+                        <div class="related-movie-year">2019</div>
+                    </div>
+                </div>
+                <div class="related-movie-card">
+                    <img src="images/The Matrix.jpg" alt="The Matrix">
+                    <div class="related-movie-overlay">
+                        <div class="related-movie-title">The Matrix</div>
+                        <div class="related-movie-year">1999</div>
+                    </div>
+                </div>
+                <div class="related-movie-card">
+                    <img src="/api/placeholder/180/270" alt="Hereditary">
+                    <div class="related-movie-overlay">
+                        <div class="related-movie-title">Hereditary</div>
+                        <div class="related-movie-year">2018</div>
+                    </div>
+                </div>
+                <div class="related-movie-card">
+                    <img src="/api/placeholder/180/270" alt="Nope">
+                    <div class="related-movie-overlay">
+                        <div class="related-movie-title">Nope</div>
+                        <div class="related-movie-year">2022</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="comments-section">
+            <h2 class="section-title">Comentarios</h2>
+            
+            <div class="comment-box">
+                <div class="user-avatar">U</div>
+                <div class="comment-input-container">
+                    <textarea class="comment-input" rows="3" placeholder="Escribe un comentario..."></textarea>
+                    <div class="comment-actions">
+                        <button class="comment-btn">Comentar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="comments-list">
+                <div class="comment">
+                    <div class="user-avatar">H</div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <div class="commenter-name">HorrorFan23</div>
+                            <div class="comment-date">Hace 3 días</div>
+                        </div>
+                        <p class="comment-text">
+                            El debut de Jordan Peele como director es simplemente brillante. Esta película mezcla perfectamente el terror con la crítica social. La actuación de Daniel Kaluuya es increíble, especialmente en las escenas de la "zona hundida". ¡Una obra maestra moderna del género!
+                        </p>
+                        <div class="comment-footer">
+                            <div class="comment-action">Me gusta (31)</div>
+                            <div class="comment-action">Responder</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comment">
+                    <div class="user-avatar">C</div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <div class="commenter-name">CriticoDelCine</div>
+                            <div class="comment-date">Hace 1 semana</div>
+                        </div>
+                        <p class="comment-text">
+                            El uso del simbolismo en esta película es impresionante. Cada detalle tiene un propósito y la revelación final es escalofriante. Jordan Peele logró crear un thriller psicológico que también funciona como una poderosa alegoría sobre la experiencia afroamericana. La forma en que mezcla el humor con el terror es magistral.
+                        </p>
+                        <div class="comment-footer">
+                            <div class="comment-action">Me gusta (42)</div>
+                            <div class="comment-action">Responder</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comment">
+                    <div class="user-avatar">T</div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <div class="commenter-name">ThrillerMaster</div>
+                            <div class="comment-date">Hace 2 semanas</div>
+                        </div>
+                        <p class="comment-text">
+                            La escena de la hipnosis con la taza de té es una de las más inquietantes que he visto en años. Catherine Keener interpreta perfectamente su papel. Esta película me recordó a los mejores thrillers de los 70s, pero con un enfoque moderno y relevante. Cada vez que la veo descubro nuevos detalles.
+                        </p>
+                        <div class="comment-footer">
+                            <div class="comment-action">Me gusta (27)</div>
+                            <div class="comment-action">Responder</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Streamix</h3>
+                <ul>
+                    <li><a href="#">Acerca de</a></li>
+                    <li><a href="#">Empleo</a></li>
+                    <li><a href="#">Contáctanos</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Ayuda</h3>
+                <ul>
+                    <li><a href="#">Preguntas Frecuentes</a></li>
+                    <li><a href="#">Dispositivos Compatibles</a></li>
+                    <li><a href="#">Centro de Ayuda</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <ul>
+                    <li><a href="#">Términos de Uso</a></li>
+                    <li><a href="#">Política de Privacidad</a></li>
+                    <li><a href="#">Preferencias de Cookies</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Redes Sociales</h3>
+                <ul>
+                    <li><a href="#">Facebook</a></li>
+                    <li><a href="#">Twitter</a></li>
+                    <li><a href="#">Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 Streamix. Todos los derechos reservados. Proyecto escolar.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Referencias a elementos del DOM
+            const video = document.getElementById('movie-player');
+            const playBtn = document.getElementById('play-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const volumeBtn = document.getElementById('volume-btn');
+            const volumeSlider = document.getElementById('volume-slider');
+            const progressBar = document.getElementById('progress-bar');
+            const progressFilled = document.getElementById('progress-filled');
+            const timeDisplay = document.getElementById('time-display');
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            const serverButtons = document.querySelectorAll('.server-btn');
+            
+            // Configuración inicial del video
+            video.volume = volumeSlider.value;
+            
+            // Simular carga del video (para el proyecto escolar)
+            video.addEventListener('loadeddata', function() {
+                console.log('Video cargado');
+            });
+            
+            // Funciones del reproductor
+            function togglePlay() {
+                if (video.paused) {
+                    video.play();
+                } else {
+                    video.pause();
+                }
+            }
+            
+            function updateProgress() {
+                const percent = (video.currentTime / video.duration) * 100;
+                progressFilled.style.width = `${percent}%`;
+                
+                // Actualizar la visualización del tiempo
+                const currentMinutes = Math.floor(video.currentTime / 60);
+                const currentSeconds = Math.floor(video.currentTime % 60);
+                const durationMinutes = Math.floor(video.duration / 60) || 104;
+                const durationSeconds = Math.floor(video.duration % 60) || 0;
+                
+                timeDisplay.textContent = `${currentMinutes}:${currentSeconds < 10 ? '0' : ''}${currentSeconds} / ${durationMinutes}:${durationSeconds < 10 ? '0' : ''}${durationSeconds}`;
+            }
+            
+            function scrub(e) {
+                const scrubTime = (e.offsetX / progressBar.offsetWidth) * video.duration;
+                video.currentTime = scrubTime;
+            }
+            
+            // Eventos del reproductor
+            video.addEventListener('click', togglePlay);
+            video.addEventListener('play', () => {
+                playBtn.style.display = 'none';
+                pauseBtn.style.display = 'inline-block';
+            });
+            video.addEventListener('pause', () => {
+                playBtn.style.display = 'inline-block';
+                pauseBtn.style.display = 'none';
+            });
+            video.addEventListener('timeupdate', updateProgress);
+            
+            // Controles de video
+            playBtn.addEventListener('click', () => {
+                video.play();
+            });
+            
+            pauseBtn.addEventListener('click', () => {
+                video.pause();
+            });
+            
+            volumeBtn.addEventListener('click', function() {
+                if (video.volume > 0) {
+                    video.dataset.previousVolume = video.volume;
+                    video.volume = 0;
+                    volumeSlider.value = 0;
+                    volumeBtn.textContent = '🔇';
+                } else {
+                    video.volume = video.dataset.previousVolume || 0.7;
+                    volumeSlider.value = video.volume;
+                    volumeBtn.textContent = '🔊';
+                }
+            });
+            
+            volumeSlider.addEventListener('input', function() {
+                video.volume = this.value;
+                volumeBtn.textContent = this.value > 0 ? '🔊' : '
