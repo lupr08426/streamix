@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamix - Ver Barbie</title>
+    <style>
+        :root {
+            --primary-color: #ff69b4; /* Rosa Barbie como color principal */
+            --dark-bg: #141414;
+            --darker-bg: #0a0a0a;
+            --light-text: #ffffff;
+            --gray-text: #b3b3b3;
+            --dark-gray: #333333;
+            --medium-gray: #555555;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--darker-bg);
+            color: var(--light-text);
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background-color: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+            transition: background-color 0.3s;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 1.5rem;
+        }
+        
+        nav ul li a {
+            color: var(--light-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: var(--gray-text);
+        }
+        
+        .content-container {
+            padding: 5rem 5% 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .breadcrumbs {
+            margin-bottom: 1rem;
+            color: var(--gray-text);
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumbs a {
+            color: var(--gray-text);
+            text-decoration: none;
+        }
+        
+        .breadcrumbs a:hover {
+            color: var(--light-text);
+        }
+        
+        .movie-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .movie-meta {
+            display: flex;
+            gap: 1rem;
+            color: var(--gray-text);
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .player-container {
+            position: relative;
+            width: 100%;
+            background-color: #000;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .aspect-ratio-box {
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            position: relative;
+        }
+        
+        .player-frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .player-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .player-container:hover .player-controls {
+            opacity: 1;
+        }
+        
+        .control-btn {
+            background: none;
+            border: none;
+            color: var(--light-text);
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-right: 1rem;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 4px;
+            background-color: var(--medium-gray);
+            position: relative;
+            margin: 0 1rem;
+            border-radius: 2px;
+        }
+        
+        .progress-filled {
+            background-color: var(--primary-color);
+            width: 0%; /* Se actualizará con JavaScript */
+            height: 100%;
+            border-radius: 2px;
+        }
+        
+        .volume-container {
+            display: flex;
+            align-items: center;
+            margin-left: 1rem;
+        }
+        
+        .volume-slider {
+            width: 80px;
+            margin-left: 0.5rem;
+            -webkit-appearance: none;
+            background-color: var(--medium-gray);
+            height: 4px;
+            border-radius: 2px;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--light-text);
+            cursor: pointer;
+        }
+        
+        .server-options {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .server-btn, .option-btn {
+            padding: 0.5rem 1rem;
+            background-color: var(--dark-gray);
+            color: var(--light-text);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .server-btn:hover, .option-btn:hover {
+            background-color: var(--medium-gray);
+        }
+        
+        .server-btn.active {
+            background-color: var(--primary-color);
+        }
+        
+        .option-btn {
+            background-color: var(--dark-bg);
+        }
+        
+        .movie-options {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .left-options, .right-options {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .movie-info {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .movie-poster {
+            width: 220px;
+            height: 330px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .movie-details {
+            flex-grow: 1;
+        }
+        
+        .movie-description {
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            color: var(--gray-text);
+        }
+        
+        .movie-category {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .category-tag {
+            padding: 0.3rem 0.8rem;
+            background-color: var(--dark-gray);
+            border-radius: 16px;
+            font-size: 0.8rem;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 0.8rem;
+        }
+        
+        .info-label {
+            min-width: 120px;
+            color: var(--gray-text);
+        }
+        
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stars {
+            color: gold;
+        }
+        
+        .related-movies {
+            margin-top: 3rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+        
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .related-movie-card {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+        
+        .related-movie-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .related-movie-card img {
+            width: 100%;
+            height: 270px;
+            object-fit: cover;
+        }
+        
+        .related-movie-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+        }
+        
+        .related-movie-title {
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .related-movie-year {
+            font-size: 0.8rem;
+            color: var(--gray-text);
+        }
+        
+        .comments-section {
+            margin-top: 3rem;
+            margin-bottom: 2rem;
+        }
+        
+        .comment-box {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--dark-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .comment-input-container {
+            flex-grow: 1;
+        }
+        
+        .comment-input {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--dark-gray);
+            border: none;
+            border-radius: 4px;
+            color: var(--light-text);
+            resize: none;
+        }
+        
+        .comment-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 0.5rem;
+        }
+        
+        .comment-btn {
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .comments-list {
+            margin-top: 2rem;
+        }
+        
+        .comment {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .comment-content {
+            flex-grow: 1;
+        }
+        
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .commenter-name {
+            font-weight: bold;
+        }
+        
+        .comment-date {
+            font-size: 0.8rem;
+            color: var(--gray-text);
+        }
+        
+        .comment-text {
+            line-height: 1.5;
+            color: var(--gray-text);
+        }
+        
+        .comment-footer {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--gray-text);
+        }
+        
+        .comment-action {
+            cursor: pointer;
+        }
+        
+        .comment-action:hover {
+            color: var(--light-text);
+        }
+        
+        .fullscreen-toggle {
+            cursor: pointer;
+            margin-left: 1rem;
+        }
+        
+        footer {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 2rem 5%;
+            margin-top: 2rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        
+        .footer-section {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: var(--gray-text);
+        }
+        
+        .footer-section ul {
+            list-style: none;
+        }
+        
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer-section ul li a {
+            color: var(--light-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-section ul li a:hover {
+            color: var(--primary-color);
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--dark-gray);
+            color: var(--gray-text);
+        }
+        
+        @media (max-width: 768px) {
+            .movie-info {
+                flex-direction: column;
+            }
+            
+            .movie-poster {
+                width: 180px;
+                height: 270px;
+                margin-bottom: 1rem;
+            }
+            
+            .server-options {
+                flex-wrap: wrap;
+            }
+            
+            .movie-options {
+                justify-content: center;
+            }
+            
+            .movie-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header id="header">
+        <a href="index.html" class="logo">STREAMIX</a>
+        <nav>
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="#">Películas</a></li>
+                <li><a href="#">Series</a></li>
+                <li><a href="#">Mi Lista</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="content-container">
+        <div class="breadcrumbs">
+            <a href="index.html">Inicio</a> > <a href="#">Películas</a> > <a href="#">Comedia</a> > Barbie
+        </div>
+        
+        <h1 class="movie-title">Barbie (2023)</h1>
+        
+        <div class="movie-meta">
+            <span>2023</span>
+            <span>114 min</span>
+            <span>PG-13</span>
+            <span>Comedia</span>
+            <span>Aventura</span>
+            <span>7.0/10 ⭐</span>
+        </div>
+        
+        <div class="player-container">
+            <div class="aspect-ratio-box">
+                 <iframe 
+    id="video-player" 
+    class="player-frame" 
+    src="https://filemoon.to/e/olwrmsiijqfl/238165--1fc24a9d-0f0c-4305-b9d4-b8221e32b28a--spbi--2019811-filemoon.mp4----" 
+    frameborder="0" 
+    marginwidth="0" 
+    marginheight="0" 
+    scrolling="no" 
+    width="640" 
+    height="360" 
+    allowfullscreen>
+</iframe>
+            </div>
+        </div>
+        
+        <div class="server-options">
+            <button class="server-btn active">Servidor 1</button>
+            <button class="server-btn">Servidor 2</button>
+            <button class="server-btn">Servidor 3</button>
+            <button class="server-btn">Servidor 4</button>
+            <button class="server-btn">Servidor 5</button>
+        </div>
+        
+        <div class="movie-options">
+            <div class="left-options">
+                <button class="option-btn">Agregar a Favoritos</button>
+                <button class="option-btn">Descargar</button>
+            </div>
+            <div class="right-options">
+                <button class="option-btn">Compartir</button>
+                <button class="option-btn">Reportar</button>
+            </div>
+        </div>
+        
+        <div class="movie-info">
+            <img src="images/Barbie.jpg" alt="Barbie" class="movie-poster">
+            <div class="movie-details">
+                <p class="movie-description">
+                    Después de ser expulsada de Barbieland por ser una muñeca menos que perfecta, Barbie parte hacia el mundo humano para encontrar la verdadera felicidad. Junto a Ken, descubren las alegrías y peligros de vivir entre los humanos y experimentan un viaje de autodescubrimiento que les hará cuestionar todo lo que creían saber sobre sí mismos y sobre la vida en el plástico.
+                </p>
+                
+                <div class="movie-category">
+                    <div class="category-tag">Comedia</div>
+                    <div class="category-tag">Aventura</div>
+                    <div class="category-tag">Fantasía</div>
+                </div>
+                
+                <div class="rating">
+                    <div class="stars">★★★★☆</div>
+                    <span>7.0/10 (450K votos)</span>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Director:</div>
+                    <div>Greta Gerwig</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Actores:</div>
+                    <div>Margot Robbie, Ryan Gosling, America Ferrera, Kate McKinnon</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">País:</div>
+                    <div>Estados Unidos</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Idioma:</div>
+                    <div>Inglés</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Calidad:</div>
+                    <div>HD 1080p</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="related-movies">
+            <h2 class="section-title">Películas relacionadas</h2>
+            <div class="movie-grid">
+                <div class="related-movie-card">
+                    <img src="/api/placeholder/180/270" alt="Oppenheimer">
+                    <div class="related-movie-overlay">
+                        <div class="related-movie-title">Oppenheimer</div>
+                        <div class="related-movie-year">2023</div>
+                    </div>
+                </div>
+                <div class="related-movie-card">
+                    <img src="/api/placeholder/180/270" alt="La Sirenita">
+                    <div class="related-movie-overlay">
+                        <div class="related-movie-title">La Sirenita</div>
+                        <div class="related-movie-year">2023</div>
+                    </div>
+                </div>
+                <div class="related-movie-card">
+                    <img src="/api/placeholder/180/270" alt="Super Mario Bros. La Película">
+                    <div class="related-movie-overlay">
+                        <div class="related-movie-title">Super Mario Bros. La Película</div>
+                        <div class="related-movie-year">2023</div>
+                    </div>
+                </div>
+                <div class="related-movie-card">
+                    <img src="/api/placeholder/180/270" alt="Guardianes de la Galaxia Vol. 3">
+                    <div class="related-movie-overlay">
+                        <div class="related-movie-title">Guardianes de la Galaxia Vol. 3</div>
+                        <div class="related-movie-year">2023</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="comments-section">
+            <h2 class="section-title">Comentarios</h2>
+            
+            <div class="comment-box">
+                <div class="user-avatar">U</div>
+                <div class="comment-input-container">
+                    <textarea class="comment-input" rows="3" placeholder="Escribe un comentario..."></textarea>
+                    <div class="comment-actions">
+                        <button class="comment-btn">Comentar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="comments-list">
+                <div class="comment">
+                    <div class="user-avatar">F</div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <div class="commenter-name">FilmFanatic25</div>
+                            <div class="comment-date">Hace 3 días</div>
+                        </div>
+                        <p class="comment-text">
+                            ¡No esperaba que esta película me gustara tanto! Margot Robbie es perfecta como Barbie y Ryan Gosling me hizo reír muchísimo como Ken. Una sorprendente combinación de humor, nostalgia y mensajes importantes.
+                        </p>
+                        <div class="comment-footer">
+                            <div class="comment-action">Me gusta (42)</div>
+                            <div class="comment-action">Responder</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comment">
+                    <div class="user-avatar">M</div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <div class="commenter-name">MovieCritic2023</div>
+                            <div class="comment-date">Hace 1 semana</div>
+                        </div>
+                        <p class="comment-text">
+                            Greta Gerwig logró lo imposible: convertir lo que parecía una película basada en un juguete en una inteligente sátira social con mucho que decir sobre género y sociedad. La dirección artística y el vestuario son espectaculares.
+                        </p>
+                        <div class="comment-footer">
+                            <div class="comment-action">Me gusta (37)</div>
+                            <div class="comment-action">Responder</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comment">
+                    <div class="user-avatar">K</div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <div class="commenter-name">KenIsBarbieGirl</div>
+                            <div class="comment-date">Hace 2 semanas</div>
+                        </div>
+                        <p class="comment-text">
+                            La banda sonora es increíble y la escena de baile de Ken en la playa es épica. Llevo viéndola 5 veces y sigo descubriendo nuevos detalles y referencias. Creo que es una película que muchos subestimaron al principio, pero que terminó siendo mucho más profunda de lo esperado.
+                        </p>
+                        <div class="comment-footer">
+                            <div class="comment-action">Me gusta (65)</div>
+                            <div class="comment-action">Responder</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Streamix</h3>
+                <ul>
+                    <li><a href="#">Acerca de</a></li>
+                    <li><a href="#">Empleo</a></li>
+                    <li><a href="#">Contáctanos</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Ayuda</h3>
+                <ul>
+                    <li><a href="#">Preguntas Frecuentes</a></li>
+                    <li><a href="#">Dispositivos Compatibles</a></li>
+                    <li><a href="#">Centro de Ayuda</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <ul>
+                    <li><a href="#">Términos de Uso</a></li>
+                    <li><a href="#">Política de Privacidad</a></li>
+                    <li><a href="#">Preferencias de Cookies</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Redes Sociales</h3>
+                <ul>
+                    <li><a href="#">Facebook</a></li>
+                    <li><a href="#">Twitter</a></li>
+                    <li><a href="#">Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 Streamix. Todos los derechos reservados. Proyecto escolar.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Reproductor de video funcional
+            const video = document.getElementById('movie-player');
+            
+            // Establecer volumen predeterminado
+            video.volume = 0.5;
+            
+            // Botones de servidor
+            const serverButtons = document.querySelectorAll('.server-btn');
+            serverButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Cambiar servidor activo
+                    serverButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Simulación de cambio de fuente de video
+                    // En un caso real, cada botón cargaría una fuente distinta
+                    if (this.textContent === 'Servidor 1') {
+                        video.src = 'https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c0/Big_Buck_Bunny_4K.webm/Big_Buck_Bunny_4K.webm.720p.webm';
+                    } else if (this.textContent === 'Servidor 2') {
+                        video.src = 'https://upload.wikimedia.org/wikipedia/commons/transcoded/8/88/Elephants_Dream_%28HD%29.ogv/Elephants_Dream_%28HD%29.ogv.720p.webm';
+                    } else {
+                        // Para los demás servidores, usar el video original
+                        video.src = 'https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c0/Big_Buck_Bunny_4K.webm/Big_Buck_Bunny_4K.webm.720p.webm';
+                    }
+                    
+                    video.load();
+                    video.play();
+                });
+            });
+            
+            // Botones de opciones
+            const optionButtons = document.querySelectorAll('.option-btn');
+            optionButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    alert('Función: ' + this.textContent + ' (Simulada para este proyecto escolar)');
+                });
+            });
+            
+            // Películas relacionadas
+            const relatedMovies = document.querySelectorAll('.related-movie-card');
+            relatedMovies.forEach(movie => {
+                movie.addEventListener('click', function() {
+                    const title = this.querySelector('.related-movie-title').textContent;
+                    alert('Navegando a la película: ' + title + ' (Simulado para este proyecto)');
+                });
+            });
+            
+            // Sistema de comentarios
+            const commentButton = document.querySelector('.comment-btn');
+            const commentInput = document.querySelector('.comment-input');
+            const commentsList = document.querySelector('.comments-list');
+            
+            commentButton.addEventListener('click', function() {
+                const commentText = commentInput.value.trim();
+                if (commentText) {
+                    // Crear un nuevo comentario
+                    const newComment = document.createElement('div');
+                    newComment.className = 'comment';
+                    newComment.innerHTML = `
+                        <div class="user-avatar">Y</div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <div class="commenter-name">Tú</div>
+                                <div class="comment-date">Justo ahora</div>
+                            </div>
+                            <p class="comment-text">${commentText}</p>
+                            <div class="comment-footer">
+                                <div class="comment-action">Me gusta (0)</div>
+                                <div class="comment-action">Responder</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Insertar el comentario al inicio de la lista
+                    commentsList.insertBefore(newComment, commentsList.firstChild);
+                    
+                    // Limpiar el campo de texto
+                    commentInput.value = '';
+                } else {
+                    alert('Por favor escribe un comentario antes de enviar.');
+                }
+            });
+            
+            // Acciones de comentarios existentes
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains

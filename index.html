@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamix - Tu Plataforma de Películas</title>
+    <style>
+        :root {
+            --primary-color: #e50914;
+            --dark-bg: #141414;
+            --light-text: #ffffff;
+            --gray-text: #b3b3b3;
+            --dark-gray: #333333;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background-color: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+            transition: background-color 0.3s;
+        }
+        
+        header.scrolled {
+            background-color: var(--dark-bg);
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            cursor: pointer;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 1.5rem;
+        }
+        
+        nav ul li a {
+            color: var(--light-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: var(--gray-text);
+        }
+        
+        .search-user {
+            display: flex;
+            align-items: center;
+        }
+        
+        .search {
+            position: relative;
+            margin-right: 1.5rem;
+        }
+        
+        .search input {
+            background-color: var(--dark-gray);
+            border: 1px solid var(--gray-text);
+            color: var(--light-text);
+            padding: 0.5rem 0.8rem;
+            border-radius: 4px;
+            outline: none;
+            transition: width 0.3s;
+            width: 180px;
+        }
+        
+        .user-profile {
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            background-color: #888;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .hero {
+            height: 80vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8)), url('images/hero.jpg') no-repeat center center;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 5%;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--light-text);
+        }
+        
+        .btn-primary:hover {
+            background-color: #f40612;
+        }
+        
+        .btn-secondary {
+            background-color: rgba(109, 109, 110, 0.7);
+            color: var(--light-text);
+        }
+        
+        .btn-secondary:hover {
+            background-color: rgba(109, 109, 110, 0.9);
+        }
+        
+        main {
+            padding: 2rem 5%;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem;
+        }
+        
+        .movie-slider {
+            display: flex;
+            overflow-x: auto;
+            gap: 1rem;
+            padding: 1rem 0;
+            scrollbar-width: none;
+        }
+        
+        .movie-slider::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .movie-card {
+            min-width: 200px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            position: relative;
+        }
+        
+        .movie-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .movie-card img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        .movie-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            padding: 0.8rem;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .movie-title {
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .movie-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--gray-text);
+        }
+        
+        .genre-filter {
+            display: flex;
+            gap: 0.8rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .genre-tag {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background-color: var(--dark-gray);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .genre-tag:hover, .genre-tag.active {
+            background-color: var(--primary-color);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 200;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            overflow: auto;
+        }
+        
+        .modal-content {
+            margin: 5% auto;
+            width: 80%;
+            max-width: 900px;
+            animation: modalOpen 0.3s;
+        }
+        
+        @keyframes modalOpen {
+            from {opacity: 0; transform: translateY(-50px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .close {
+            color: var(--light-text);
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .modal-poster {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .modal-details {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .modal-title {
+            font-size: 2rem;
+        }
+        
+        .modal-meta {
+            display: flex;
+            gap: 1rem;
+            color: var(--gray-text);
+        }
+        
+        .modal-description {
+            line-height: 1.6;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        footer {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 2rem 5%;
+            margin-top: 2rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        
+        .footer-section {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: var(--gray-text);
+        }
+        
+        .footer-section ul {
+            list-style: none;
+        }
+        
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer-section ul li a {
+            color: var(--light-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-section ul li a:hover {
+            color: var(--primary-color);
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--dark-gray);
+            color: var(--gray-text);
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .search input {
+                width: 120px;
+            }
+            
+            nav ul li {
+                margin-left: 1rem;
+            }
+            
+            .movie-card {
+                min-width: 150px;
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header id="header">
+        <div class="logo">STREAMIX</div>
+        <nav>
+            <ul>
+                <li><a href="#" class="active">Inicio</a></li>
+                <li><a href="#">Películas</a></li>
+                <li><a href="#">Series</a></li>
+                <li><a href="#">Mi Lista</a></li>
+            </ul>
+        </nav>
+        <div class="search-user">
+            <div class="search">
+                <input type="text" placeholder="Buscar..." id="searchInput">
+            </div>
+            <div class="user-profile">
+                <span>U</span>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <h1>Interstellar</h1>
+        <p>Un equipo de exploradores viaja a través de un agujero de gusano en el espacio en un intento de asegurar la supervivencia de la humanidad.</p>
+        <div class="hero-buttons">
+            <button class="btn btn-primary">Reproducir</button>
+            <button class="btn btn-secondary">Más Información</button>
+        </div>
+    </section>
+
+    <main>
+        <section>
+            <h2 class="section-title">Géneros</h2>
+            <div class="genre-filter">
+                <div class="genre-tag active" data-genre="all">Todos</div>
+                <div class="genre-tag" data-genre="action">Acción</div>
+                <div class="genre-tag" data-genre="comedy">Comedia</div>
+                <div class="genre-tag" data-genre="drama">Drama</div>
+                <div class="genre-tag" data-genre="scifi">Sci-Fi</div>
+                <div class="genre-tag" data-genre="horror">Terror</div>
+                <div class="genre-tag" data-genre="romance">Romance</div>
+                <div class="genre-tag" data-genre="documentary">Documental</div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title">Tendencias</h2>
+            <div class="movie-slider" id="trendingMovies">
+                <!-- Películas generadas dinámicamente mediante JavaScript -->
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title">Popular en Streamix</h2>
+            <div class="movie-slider" id="popularMovies">
+                <!-- Películas generadas dinámicamente mediante JavaScript -->
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title">Vuelve a Ver</h2>
+            <div class="movie-slider" id="watchAgainMovies">
+                <!-- Películas generadas dinámicamente mediante JavaScript -->
+            </div>
+        </section>
+    </main>
+
+    <div id="movieModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Título de la Película</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <img class="modal-poster" src="images/movie-large.jpg" alt="Poster de la película">
+                <div class="modal-details">
+                    <div class="modal-meta">
+                        <span>2023</span>
+                        <span>120 min</span>
+                        <span>PG-13</span>
+                        <span>Género</span>
+                    </div>
+                    <p class="modal-description">
+                        Descripción detallada de la película que se mostrará cuando el usuario haga clic en una película para obtener más información.
+                    </p>
+                    <div class="modal-actions">
+                        <button id="modalPlayButton" class="btn btn-primary">Reproducir</button>
+                        <button class="btn btn-secondary">Agregar a Mi Lista</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Streamix</h3>
+                <ul>
+                    <li><a href="#">Acerca de</a></li>
+                    <li><a href="#">Empleo</a></li>
+                    <li><a href="#">Contáctanos</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Ayuda</h3>
+                <ul>
+                    <li><a href="#">Preguntas Frecuentes</a></li>
+                    <li><a href="#">Dispositivos Compatibles</a></li>
+                    <li><a href="#">Centro de Ayuda</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <ul>
+                    <li><a href="#">Términos de Uso</a></li>
+                    <li><a href="#">Política de Privacidad</a></li>
+                    <li><a href="#">Preferencias de Cookies</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Redes Sociales</h3>
+                <ul>
+                    <li><a href="#">Facebook</a></li>
+                    <li><a href="#">Twitter</a></li>
+                    <li><a href="#">Instagram</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 Streamix. Todos los derechos reservados. Proyecto escolar.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Datos de muestra para películas
+        const moviesData = [
+            {
+                id: 1,
+                title: "The Matrix",
+                year: 2023,
+                rating: 4.8,
+                genre: "scifi",
+                image: "images/The Matrix.jpg"
+            },
+            {
+                id: 2,
+                title: "Inception",
+                year: 2022,
+                rating: 4.7,
+                genre: "scifi",
+                image: "images/Inception.png"
+            },
+            {
+                id: 3,
+                title: "La La Land",
+                year: 2021,
+                rating: 4.5,
+                genre: "romance",
+                image: "images/La La Land.jpg"
+            },
+            {
+                id: 4,
+                title: "Get Out",
+                year: 2020,
+                rating: 4.6,
+                genre: "horror",
+                image: "images/Get Out.png"
+            },
+            {
+                id: 5,
+                title: "The Avengers",
+                year: 2022,
+                rating: 4.4,
+                genre: "action",
+                image: "images/The Avengers.jpg"
+            },
+            {
+                id: 6,
+                title: "Parasite",
+                year: 2023,
+                rating: 4.9,
+                genre: "drama",
+                image: "images/Parasite.jpg"
+            },
+            {
+                id: 7,
+                title: "Superbad",
+                year: 2021,
+                rating: 4.2,
+                genre: "comedy",
+                image: "images/Superbad.jpg"
+            },
+            {
+                id: 8,
+                title: "Planet Earth",
+                year: 2020,
+                rating: 4.3,
+                genre: "documentary",
+                image: "images/Planet Earth.jpg"
+            },
+            {
+                id: 9,
+                title: "Top Gun: Maverick",
+                year: 2023,
+                rating: 4.6,
+                genre: "action",
+                image: "images/Top Gun Maverick.jpg"
+            },
+            {
+                id: 10,
+                title: "Dune",
+                year: 2024,
+                rating: 4.7,
+                genre: "scifi",
+                image: "images/Dune.jpg"
+            },
+            {
+                id: 11,
+                title: "Barbie",
+                year: 2023,
+                rating: 4.5,
+                genre: "comedy",
+                image: "images/Barbie.jpg"
+            },
+            {
+                id: 12,
+                title: "Oppenheimer",
+                year: 2024,
+                rating: 4.8,
+                genre: "drama",
+                image: "images/Oppenheimer.jpg"
+            }
+        ];
+
+        // Función para generar tarjetas de películas
+        function generateMovieCards(containerId, movies) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = "";
+            
+            movies.forEach(movie => {
+                const movieCard = document.createElement("div");
+                movieCard.className = "movie-card";
+                movieCard.dataset.id = movie.id;
+                movieCard.dataset.genre = movie.genre;
+                
+                movieCard.innerHTML = `
+                    <img src="${movie.image}" alt="${movie.title}">
+                    <div class="movie-overlay">
+                        <h3 class="movie-title">${movie.title}</h3>
+                        <div class="movie-info">
+                            <span>${movie.year}</span>
+                            <span>⭐ ${movie.rating}</span>
+                        </div>
+                    </div>
+                `;
+                
+                // Evento para abrir modal al hacer clic en una película
+                movieCard.addEventListener("click", () => openMovieModal(movie));
+               
+                container.appendChild(movieCard);
+            });
+        }
+
+        // Función para abrir modal de película
+        function openMovieModal(movie) {
+    const modal = document.getElementById("movieModal");
+    const modalTitle = modal.querySelector(".modal-title");
+    const modalPoster = modal.querySelector(".modal-poster");
+    const modalDescription = modal.querySelector(".modal-description");
+    const modalMeta = modal.querySelector(".modal-meta");
+
+    modalTitle.textContent = movie.title;
+    modalPoster.src = movie.image;
+    modalDescription.textContent = `Esta es una descripción para la película "${movie.title}".`;
+    modalMeta.innerHTML = `
+        <span>${movie.year}</span>
+        <span>120 min</span>
+        <span>PG-13</span>
+        <span>${movie.genre}</span>
+    `;
+
+    // Mostrar modal
+    modal.style.display = "block";
+
+    // Obtener y manejar el botón de reproducir
+    const modalPlayButton = document.getElementById("modalPlayButton");
+    modalPlayButton.onclick = () => {
+        window.location.href = `pelicula${movie.id}.html`;
+    };
+
+            // Obtener nombre del género
+            const genreName = getGenreName(movie.genre);
+            
+            modalMeta.innerHTML = `
+                <span>${movie.year}</span>
+                <span>120 min</span>
+                <span>PG-13</span>
+                <span>${genreName}</span>
+            `;
+            
+            modalDescription.textContent = `Esta es una película de ${genreName.toLowerCase()} estrenada en ${movie.year}. La calificación de los usuarios es ${movie.rating}/5. Descripción detallada de "${movie.title}" se mostraría aquí con información sobre la trama, actores, director y más.`;
+            
+            modal.style.display = "block";
+        }
+        
+        // Función para obtener nombre del género
+        function getGenreName(genreCode) {
+            const genres = {
+                "action": "Acción",
+                "comedy": "Comedia",
+                "drama": "Drama",
+                "scifi": "Sci-Fi",
+                "horror": "Terror",
+                "romance": "Romance",
+                "documentary": "Documental"
+            };
+            
+            return genres[genreCode] || "Desconocido";
+        }
+
+        // Función para cerrar el modal
+        function closeModal() {
+            const modal = document.getElementById("movieModal");
+            modal.style.display = "none";
+        }
+
+        // Función para filtrar películas por género
+        function filterMoviesByGenre(genre) {
+            const movieCards = document.querySelectorAll(".movie-card");
+            
+            movieCards.forEach(card => {
+                if (genre === "all" || card.dataset.genre === genre) {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+            
+            // Actualizar clases de los botones de género
+            const genreTags = document.querySelectorAll(".genre-tag");
+            genreTags.forEach(tag => {
+                if (tag.dataset.genre === genre) {
+                    tag.classList.add("active");
+                } else {
+                    tag.classList.remove("active");
+                }
+            });
+        }
+
+        // Función para buscar películas
+        function searchMovies(query) {
+            const movieCards = document.querySelectorAll(".movie-card");
+            query = query.toLowerCase();
+            
+            movieCards.forEach(card => {
+                const title = card.querySelector(".movie-title").textContent.toLowerCase();
+                if (title.includes(query)) {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+        }
+
+        // Función para actualizar el header al hacer scroll
+        function handleScroll() {
+            const header = document.getElementById("header");
+            if (window.scrollY > 50) {
+                header.classList.add("scrolled");
+            } else {
+                header.classList.remove("scrolled");
+            }
+        }
+
+        // Cargar películas al cargar la página
+        window.addEventListener("DOMContentLoaded", () => {
+            // Cargar películas en las diferentes secciones
+            generateMovieCards("trendingMovies", moviesData.slice(0, 6));
+            generateMovieCards("popularMovies", moviesData.slice(3, 9));
+            generateMovieCards("watchAgainMovies", moviesData.slice(6, 12));
+            
+            // Configurar evento para cerrar modal
+            const closeBtn = document.querySelector(".close");
+            closeBtn.addEventListener("click", closeModal);
+            
+            // Cerrar modal haciendo clic fuera del contenido
+            const modal = document.getElementById("movieModal");
+            window.addEventListener("click", (event) => {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+            
+            // Configurar filtros de género
+            const genreTags = document.querySelectorAll(".genre-tag");
+            genreTags.forEach(tag => {
+                tag.addEventListener("click", () => {
+                    filterMoviesByGenre(tag.dataset.genre);
+                });
+            });
+            
+            // Configurar búsqueda
+            const searchInput = document.getElementById("searchInput");
+            searchInput.addEventListener("input", (e) => {
+                searchMovies(e.target.value);
+            });
+            
+            // Configurar evento de scroll para el header
+            window.addEventListener("scroll", handleScroll);
+        });
+    </script>
+</body>
+</html>
